@@ -1,56 +1,65 @@
+#! /usr/bin/env groovy
+
 pipeline {
-    options {
-        // set a timeout of 60 minutes for this pipeline
-        timeout(time: 60, unit: 'MINUTES')
-    }
 
-    environment {
-        APP_NAME = "springhellotest"
-        DEV_PROJECT = "hellospring"
-        STAGE_PROJECT = "hellospring-stage"
-        PROD_PROJECT = "hellospring-prod"
-        APP_GIT_URL = "https://github.com/Onurkaratas1/hello-java-spring.git/"
-    }
+  agent {
+    label 'maven'
+  }
 
-    agent {
-      node {
-        label 'nodejs'
+  stages {
+    stage('Build') {
+      steps {
+        echo 'Building..'
+
+        // Add steps here
+        sh 'mvn clean package'
       }
     }
+    stage('Create Container Image') {
+      steps {
+        echo 'Create Container Image..'
 
-    stages {
-        stage('Deploy to DEV environment') {
-            steps {
-                echo '###### Deploy to DEV environment ######'
-                script {
-                    openshift.withCluster() {
-                        openshift.withProject("$DEV_PROJECT") {
-                            echo "Using project: ${openshift.project()}"
-                            // If DeploymentConfig already exists, rollout to update the application
-                            if (openshift.selector("dc", APP_NAME).exists()) {
-                                echo "DeploymentConfig " + APP_NAME + " exists, rollout to update app ..."
-                                // Rollout (it corresponds to oc rollout <deploymentconfig>)
-                                def dc = openshift.selector("dc", "${APP_NAME}")
-                                dc.rollout().latest()
-                                // If a Route does not exist, expose the Service and create the Route
-                                if (!openshift.selector("route", APP_NAME).exists()) {
-                                    echo "Route " + APP_NAME + " does not exist, exposing service ..."
-                                    def service = openshift.selector("service", APP_NAME)
-                                    service.expose()
-                                }
-                            }
-                            // If DeploymentConfig does not exist, deploy a new application using an OpenShift Template
-                            else{
-                                echo "DeploymentConfig " + APP_NAME + " does not exist, creating app ..."
-                                openshift.newApp('deploy.yml')
-                            }
-                            def route = openshift.selector("route", APP_NAME)
-                            echo "Test application with "
-                            def result = route.describe()
-                        }
-                    }
-                }
-            }
+        script {
+
+          // Add steps here
+          openshift.withCluster() {
+            openshift.withProject("springhellotest") {
+
+              def buildConfigExists = openshift.selector("bc", "springhellotest").exists()
+
+              if(!buildConfigExists){
+                openshift.newBuild("--name=springhellotest", "--docker-image=registry.redhat.io/jboss-eap-7/eap74-openjdk8-openshift-rhel7", "--binary")
+              }
+
+              openshift.selector("bc", "springhellotest").startBuild("--from-file=target/simple-servlet-0.0.1-SNAPSHOT.war", "--follow") } }
+
         }
+      }
     }
+    stage('Deploy') {
+      steps {
+        echo 'Deploying....'
+        script {
+
+          // Add steps here
+          openshift.withCluster() {
+            openshift.withProject("springhellotest") {
+              def deployment = openshift.selector("dc", "springhellotest")
+
+              if(!deployment.exists()){
+                openshift.newApp('springhellotest', "--as-deployment-config").narrow('svc').expose()
+              }
+
+              timeout(5) {
+                openshift.selector("dc", "springhellotest").related('pods').untilEach(1) {
+                  return (it.object().status.phase == "Running")
+                }
+              }
+            }
+          }
+
+        }
+      }
+    }
+  }
 }

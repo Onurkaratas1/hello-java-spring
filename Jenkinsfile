@@ -1,122 +1,56 @@
-library identifier: "pipeline-library@v1.6",
-retriever: modernSCM(
-  [
-    $class: "GitSCMSource",
-    remote: "https://github.com/redhat-cop/pipeline-library.git"
-  ]
-)
-
-openshift.withCluster() {
-  env.NAMESPACE = openshift.project()
-  env.POM_FILE = env.BUILD_CONTEXT_DIR ? "${env.BUILD_CONTEXT_DIR}/pom.xml" : "pom.xml"
-  echo "Starting Pipeline for ${env.APP_NAME}..."
-  env.BUILD = "${env.NAMESPACE_BUILD}"
-  env.DEV = "${env.NAMESPACE_DEV}"
-  env.STAGE = "${env.NAMESPACE_STAGE}"
-  env.PROD = "${env.NAMESPACE_PROD}"
-}
-
 pipeline {
-  // Use Jenkins Maven slave
-  // Jenkins will dynamically provision this as OpenShift Pod
-  // All the stages and steps of this Pipeline will be executed on this Pod
-  // After Pipeline completes the Pod is killed so every run will have clean
-  // workspace
-  agent {
-    label 'maven'
-  }
+    options {
+        // set a timeout of 60 minutes for this pipeline
+        timeout(time: 60, unit: 'MINUTES')
+    }
 
-  // Pipeline Stages start here
-  // Requeres at least one stage
-  stages {
+    environment {
+        APP_NAME = "springhellotest"
+        DEV_PROJECT = "hellospring"
+        STAGE_PROJECT = "hellospring-stage"
+        PROD_PROJECT = "hellospring-prod"
+        APP_GIT_URL = "https://github.com/Onurkaratas1/hello-java-spring.git/"
+    }
 
-    // Checkout source code
-    // This is required as Pipeline code is originally checkedout to
-    // Jenkins Master but this will also pull this same code to this slave
-    stage('Git Checkout') {
-      steps {
-        // Turn off Git's SSL cert check, uncomment if needed
-        // sh 'git config --global http.sslVerify false'
-        git url: "${APPLICATION_SOURCE_REPO}", branch: "${APPLICATION_SOURCE_REF}"
+    agent {
+      node {
+        label 'nodejs'
       }
     }
 
-    // Run Maven build, skipping tests
-    stage('Build'){
-      steps {
-        sh "mvn -B clean install -DskipTests=true -f ${POM_FILE}"
-      }
-    }
-
-    // Run Maven unit tests
-    stage('Unit Test'){
-      steps {
-        sh "mvn -B test -f ${POM_FILE}"
-      }
-    }
-
-    // Build Container Image using the artifacts produced in previous stages
-    stage('Build Container Image'){
-      steps {
-        // Copy the resulting artifacts into common directory
-        sh """
-          ls target/*
-          rm -rf oc-build && mkdir -p oc-build/deployments
-          for t in \$(echo "jar;war;ear" | tr ";" "\\n"); do
-            cp -rfv ./target/*.\$t oc-build/deployments/ 2> /dev/null || echo "No \$t files"
-          done
-        """
-
-        // Build container image using local Openshift cluster
-        // Giving all the artifacts to OpenShift Binary Build
-        // This places your artifacts into right location inside your S2I image
-        // if the S2I image supports it.
-        binaryBuild(projectName: env.BUILD, buildConfigName: env.APP_NAME, buildFromPath: "oc-build")
-      }
-    }
-
-    stage('Promote from Build to Dev') {
-      steps {
-        tagImage(sourceImageName: env.APP_NAME, sourceImagePath: env.BUILD, toImagePath: env.DEV)
-      }
-    }
-
-    stage ('Verify Deployment to Dev') {
-      steps {
-        verifyDeployment(projectName: env.DEV, targetApp: env.APP_NAME)
-      }
-    }
-
-    stage('Promote from Dev to Stage') {
-      steps {
-        tagImage(sourceImageName: env.APP_NAME, sourceImagePath: env.DEV, toImagePath: env.STAGE)
-      }
-    }
-
-    stage ('Verify Deployment to Stage') {
-      steps {
-        verifyDeployment(projectName: env.STAGE, targetApp: env.APP_NAME)
-      }
-    }
-
-    stage('Promotion gate') {
-      steps {
-        script {
-          input message: 'Promote application to Production?'
+    stages {
+        stage('Deploy to DEV environment') {
+            steps {
+                echo '###### Deploy to DEV environment ######'
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject("$DEV_PROJECT") {
+                            echo "Using project: ${openshift.project()}"
+                            // If DeploymentConfig already exists, rollout to update the application
+                            if (openshift.selector("dc", APP_NAME).exists()) {
+                                echo "DeploymentConfig " + APP_NAME + " exists, rollout to update app ..."
+                                // Rollout (it corresponds to oc rollout <deploymentconfig>)
+                                def dc = openshift.selector("dc", "${APP_NAME}")
+                                dc.rollout().latest()
+                                // If a Route does not exist, expose the Service and create the Route
+                                if (!openshift.selector("route", APP_NAME).exists()) {
+                                    echo "Route " + APP_NAME + " does not exist, exposing service ..."
+                                    def service = openshift.selector("service", APP_NAME)
+                                    service.expose()
+                                }
+                            }
+                            // If DeploymentConfig does not exist, deploy a new application using an OpenShift Template
+                            else{
+                                echo "DeploymentConfig " + APP_NAME + " does not exist, creating app ..."
+                                openshift.newApp('deploy.yml')
+                            }
+                            def route = openshift.selector("route", APP_NAME)
+                            echo "Test application with "
+                            def result = route.describe()
+                        }
+                    }
+                }
+            }
         }
-      }
     }
-
-    stage('Promote from Stage to Prod') {
-      steps {
-        tagImage(sourceImageName: env.APP_NAME, sourceImagePath: env.STAGE, toImagePath: env.PROD)
-      }
-    }
-
-    stage ('Verify Deployment to Prod') {
-      steps {
-        verifyDeployment(projectName: env.PROD, targetApp: env.APP_NAME)
-      }
-    }
-  }
 }

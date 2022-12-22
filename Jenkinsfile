@@ -23,7 +23,7 @@ pipeline {
 
           // Add steps here
           openshift.withCluster() {
-            openshift.withProject("springhellotest") {
+            openshift.withProject("onurkaratas-crt-dev") {
 
               def buildConfigExists = openshift.selector("bc", "springhellotest").exists()
 
@@ -43,7 +43,7 @@ pipeline {
 
           // Add steps here
           openshift.withCluster() {
-            openshift.withProject("springhellotest") {
+            openshift.withProject("onurkaratas-crt-dev") {
               def deployment = openshift.selector("dc", "springhellotest")
 
               if(!deployment.exists()){

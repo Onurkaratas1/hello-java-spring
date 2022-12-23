@@ -13,6 +13,11 @@ import org.springframework.ui.Model;
 public class HelloJavaSpringBootApplication {
 
 	@GetMapping("/")
+	public String hello(){
+		return "hello";
+	}
+
+	@GetMapping("/hello")
 	public String index(final Model model) {
 		model.addAttribute("title", "Spring Boot");
 		model.addAttribute("msg", "Hello World!");

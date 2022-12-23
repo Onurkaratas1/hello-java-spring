@@ -1,30 +1,67 @@
 pipeline {
-          agent { label "maven" }
-          stages {
-            stage("Clone Source") {
-              steps {
-                checkout([$class: 'GitSCM',
-                            branches: [[name: '*/main']],
-                            extensions: [
-                              [$class: 'RelativeTargetDirectory', relativeTargetDir: 'mavenapp']
-                            ],
-                            userRemoteConfigs: [[url: 'https://github.com/Onurkaratas1/hello-java-spring.git']]
-                        ])
-              }
-            }
-            stage("Build WAR") {
-              steps {
-                dir('mavenapp') {
-                  sh 'mvn clean package -Popenshift'
-                }
-              }
-            }
-            stage("Build Image") {
-              steps {
-                dir('mavenapp/target') {
-                  sh 'oc start-build mavenapp --from-dir . --follow'
-                }
-              }
+  agent {
+    label 'maven'
+  }
+  environment {
+    PROJECT = 'onurkaratas-crt-dev'
+  }
+  stages {
+    stage('Preamble') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject("${env.PROJECT}") {
+              echo "Using project: ${openshift.project()}"
             }
           }
         }
+      }
+    }
+    stage('Maven Build') {
+      steps {
+        echo 'Build jar file'
+        script {
+          maven {
+            goals('clean')
+            goals('install')
+            properties skipTests: true
+          }
+        }
+      }
+    }
+    stage('Run Unit Tests') {
+      steps {
+        echo 'Run unit tests'
+        script {
+          maven {
+            goals('test')
+          }
+        }
+      }
+    }
+    stage('Delete') {
+      steps {
+        echo "Delete application"
+        script {
+          openshift.withCluster() {
+            openshift.withProject("${env.PROJECT}") {
+              openshift.selector("all", [  'app' : 'springclient' ]).delete()
+            }
+          }
+        }
+      }
+    }
+    stage('Deploy') {
+      steps {
+        echo "Deploy application"
+        script {
+          openshift.withCluster() {
+            openshift.withProject("${env.PROJECT}") {
+              openshift.newApp('registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:1.6~https://github.com/Onurkaratas1/hello-java-spring.git', "--name=springclient", "--strategy=source", "--allow-missing-images", "--build-env=\'JAVA_APP_JAR=hello-java-spring-boot-0.0.1-SNAPSHOT.jar\'").narrow('svc').expose()
+            }
+          }
+        }
+      }
+    }
+  }
+}

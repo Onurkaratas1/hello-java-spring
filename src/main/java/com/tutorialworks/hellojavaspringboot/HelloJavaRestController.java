@@ -9,6 +9,6 @@ public class HelloJavaRestController {
 
     @GetMapping("/")
     public String getFavouriteCheese() {
-        return "Hello World";
+        return "Hello World test";
     }
 }

@@ -30,7 +30,7 @@ objects:
         spec:
           containers:
             - name: onurkaratas/springbootlatest
-              image: docker.io/robipozzi/onurkaratas/springbootlatest:latest
+              image: docker.io/onurkaratas/springbootlatest:latest
               imagePullPolicy: Always
               livenessProbe:
                 httpGet:

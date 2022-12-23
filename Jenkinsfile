@@ -1,65 +1,30 @@
-#! /usr/bin/env groovy
-
 pipeline {
-
-  agent {
-    label 'maven'
-  }
-
-  stages {
-    stage('Build') {
-      steps {
-        echo 'Building..'
-
-        // Add steps here
-        sh 'mvn clean package'
-      }
-    }
-    stage('Create Container Image') {
-      steps {
-        echo ''
-
-        script {
-
-          // Add steps here
-          openshift.withCluster() {
-            openshift.withProject("onurkaratas-crt-dev") {
-
-              def buildConfigExists = openshift.selector("bc", "example").exists()
-
-              if(!buildConfigExists){
-                openshift.newBuild("--name=example", "--docker-image=registry.redhat.io/jboss-eap-7/eap74-openjdk8-openshift-rhel7", "--binary")
+          agent { label "maven" }
+          stages {
+            stage("Clone Source") {
+              steps {
+                checkout([$class: 'GitSCM',
+                            branches: [[name: '*/main']],
+                            extensions: [
+                              [$class: 'RelativeTargetDirectory', relativeTargetDir: 'mavenapp']
+                            ],
+                            userRemoteConfigs: [[url: 'https://github.com/Onurkaratas1/hello-java-spring.git']]
+                        ])
               }
-
-              openshift.selector("bc", "example").startBuild("--from-file=target/hello-java-spring-boot-0.0.1-SNAPSHOT.jar") } }
-
-        }
-      }
-    }
-    stage('Deploy') {
-      steps {
-        echo 'Deploying....'
-        script {
-
-          // Add steps here
-          openshift.withCluster() {
-            openshift.withProject("onurkaratas-crt-dev") {
-              def deployment = openshift.selector("dc", "springhellotest")
-
-              if(!deployment.exists()){
-                openshift.newApp('springhellotest', "--as-deployment-config").narrow('svc').expose()
+            }
+            stage("Build WAR") {
+              steps {
+                dir('mavenapp') {
+                  sh 'mvn clean package -Popenshift'
+                }
               }
-
-              timeout(5) {
-                openshift.selector("dc", "springhellotest").related('pods').untilEach(1) {
-                  return (it.object().status.phase == "Running")
+            }
+            stage("Build Image") {
+              steps {
+                dir('mavenapp/target') {
+                  sh 'oc start-build mavenapp --from-dir . --follow'
                 }
               }
             }
           }
-
         }
-      }
-    }
-  }
-}

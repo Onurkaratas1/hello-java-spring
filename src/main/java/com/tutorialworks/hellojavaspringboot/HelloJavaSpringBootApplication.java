@@ -10,7 +10,7 @@ import org.springframework.ui.Model;
 @SpringBootApplication
 @Controller
 
-public class SpringHelloApplication {
+public class HelloJavaSpringBootApplication {
 
 	@GetMapping("/")
 	public String index(final Model model) {
@@ -20,7 +20,7 @@ public class SpringHelloApplication {
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(SpringHelloApplication.class, args);
+		SpringApplication.run(HelloJavaSpringBootApplication.class, args);
 	}
 
 }

@@ -25,13 +25,13 @@ pipeline {
           openshift.withCluster() {
             openshift.withProject("onurkaratas-crt-dev") {
 
-              def buildConfigExists = openshift.selector("bc", "springhellotest").exists()
+              def buildConfigExists = openshift.selector("bc", "example").exists()
 
               if(!buildConfigExists){
-                openshift.newBuild("--name=springhellotest", "--docker-image=registry.redhat.io/jboss-eap-7/eap74-openjdk8-openshift-rhel7", "--binary")
+                openshift.newBuild("--name=example", "--docker-image=registry.redhat.io/jboss-eap-7/eap74-openjdk8-openshift-rhel7", "--binary")
               }
 
-              openshift.selector("bc", "springhellotest").startBuild("--from-file=target/hello-java-spring-boot-0.0.1-SNAPSHOT.jar", "--follow") } }
+              openshift.selector("bc", "example").startBuild("--from-file=target/hello-java-spring-boot-0.0.1-SNAPSHOT.jar") } }
 
         }
       }

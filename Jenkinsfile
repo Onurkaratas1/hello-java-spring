@@ -17,7 +17,7 @@ pipeline {
     }
     stage('Create Container Image') {
       steps {
-        echo 'Create Container Image..'
+        echo ''
 
         script {
 

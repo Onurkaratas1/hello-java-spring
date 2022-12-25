@@ -45,7 +45,7 @@ pipeline {
         script {
           openshift.withCluster() {
             openshift.withProject("${env.PROJECT}") {
-              openshift.selector("all", [  'app' : 'springhellotest' ]).delete()
+              openshift.selector("all", [  'app' : 'springclient' ]).delete()
             }
           }
         }
@@ -57,7 +57,7 @@ pipeline {
         script {
           openshift.withCluster() {
             openshift.withProject("${env.PROJECT}") {
-              openshift.newApp('registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:1.6~https://github.com/Onurkaratas1/hello-java-spring.git', "--name=springhellotest", "--strategy=source", "--allow-missing-images", "--build-env=\'JAVA_APP_JAR=hello-java-spring-boot-0.0.1-SNAPSHOT.jar\'").narrow('svc').expose()
+              openshift.newApp('registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:1.6~https://github.com/Onurkaratas1/hello-java-spring.git', "--name=springclient", "--strategy=source", "--allow-missing-images", "--build-env=\'JAVA_APP_JAR=hello-java-spring-boot-0.0.1-SNAPSHOT.jar\'").narrow('svc').expose()
             }
           }
         }

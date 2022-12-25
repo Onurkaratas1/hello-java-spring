@@ -1,0 +1,175 @@
+OpenShift Build onurkaratas-crt-dev/springhellotest-1 from https://github.com/Onurkaratas1/hello-java-spring.git
+Started by an SCM change
+Checking out git https://github.com/Onurkaratas1/hello-java-spring.git into /var/lib/jenkins/jobs/onurkaratas-crt-dev/jobs/onurkaratas-crt-dev-springhellotest/workspace@script/1f3b05ce82a0a6550f647d0d51bb8d2e2fb0dc9042cd6a5c9b9ed06073a85255 to read Jenkinsfile
+The recommended git tool is: NONE
+No credentials specified
+Cloning the remote Git repository
+Cloning repository https://github.com/Onurkaratas1/hello-java-spring.git
+ > git init /var/lib/jenkins/jobs/onurkaratas-crt-dev/jobs/onurkaratas-crt-dev-springhellotest/workspace@script/1f3b05ce82a0a6550f647d0d51bb8d2e2fb0dc9042cd6a5c9b9ed06073a85255 # timeout=10
+Fetching upstream changes from https://github.com/Onurkaratas1/hello-java-spring.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.27.0'
+ > git fetch --tags --force --progress -- https://github.com/Onurkaratas1/hello-java-spring.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config remote.origin.url https://github.com/Onurkaratas1/hello-java-spring.git # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+Avoid second fetch
+ > git rev-parse origin/main^{commit} # timeout=10
+Checking out Revision 9045c49227ce7384b9feddc7c0c0de85d1031156 (origin/main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 9045c49227ce7384b9feddc7c0c0de85d1031156 # timeout=10
+Commit message: "update"
+First time build. Skipping changelog.
+Running in Durability level: MAX_SURVIVABILITY
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Agent maven-dgbrc is provisioned from template maven
+---
+apiVersion: "v1"
+kind: "Pod"
+metadata:
+  labels:
+    jenkins: "slave"
+    jenkins/label-digest: "f7e2f2535bb93611f7b95e2aaa3101be4b65c2fa"
+    jenkins/label: "maven"
+  name: "maven-dgbrc"
+spec:
+  containers:
+  - args:
+    - "********"
+    - "maven-dgbrc"
+    env:
+    - name: "JENKINS_SECRET"
+      value: "********"
+    - name: "JENKINS_TUNNEL"
+      value: "172.30.2.14:50000"
+    - name: "JENKINS_AGENT_NAME"
+      value: "maven-dgbrc"
+    - name: "JENKINS_NAME"
+      value: "maven-dgbrc"
+    - name: "JENKINS_AGENT_WORKDIR"
+      value: "/tmp"
+    - name: "JENKINS_URL"
+      value: "http://172.30.226.68:80/"
+    image: "image-registry.openshift-image-registry.svc:5000/openshift/jenkins-agent-maven:latest"
+    imagePullPolicy: "Always"
+    name: "jnlp"
+    resources:
+      limits: {}
+      requests: {}
+    tty: false
+    volumeMounts:
+    - mountPath: "/tmp"
+      name: "workspace-volume"
+      readOnly: false
+    workingDir: "/tmp"
+  nodeSelector:
+    kubernetes.io/os: "linux"
+  restartPolicy: "Never"
+  serviceAccountName: "jenkins"
+  volumes:
+  - emptyDir:
+      medium: ""
+    name: "workspace-volume"
+
+Running on maven-dgbrc in /tmp/workspace/onurkaratas-crt-dev/onurkaratas-crt-dev-springhellotest
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+The recommended git tool is: NONE
+No credentials specified
+Cloning the remote Git repository
+Avoid second fetch
+Checking out Revision 9045c49227ce7384b9feddc7c0c0de85d1031156 (origin/main)
+Cloning repository https://github.com/Onurkaratas1/hello-java-spring.git
+ > git init /tmp/workspace/onurkaratas-crt-dev/onurkaratas-crt-dev-springhellotest # timeout=10
+Fetching upstream changes from https://github.com/Onurkaratas1/hello-java-spring.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.27.0'
+ > git fetch --tags --force --progress -- https://github.com/Onurkaratas1/hello-java-spring.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config remote.origin.url https://github.com/Onurkaratas1/hello-java-spring.git # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse origin/main^{commit} # timeout=10
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 9045c49227ce7384b9feddc7c0c0de85d1031156 # timeout=10
+Commit message: "update"
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Preamble)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+
+[Pipeline] _OcContextInit
+[Pipeline] _OcContextInit
+[Pipeline] echo
+Using project: onurkaratas-crt-dev
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Maven Build)
+[Pipeline] echo
+Build jar file
+[Pipeline] script
+[Pipeline] {
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Run Unit Tests)
+[Pipeline] echo
+Run unit tests
+[Pipeline] script
+[Pipeline] {
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Delete)
+[Pipeline] echo
+Delete application
+[Pipeline] script
+[Pipeline] {
+[Pipeline] _OcContextInit
+[Pipeline] _OcContextInit
+[Pipeline] readFile
+[Pipeline] _OcAction
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy)
+[Pipeline] echo
+Deploy application
+[Pipeline] script
+[Pipeline] {
+[Pipeline] _OcContextInit
+[Pipeline] _OcContextInit
+[Pipeline] readFile
+[Pipeline] _OcAction
+[Pipeline] readFile
+[Pipeline] _OcAction
+[Pipeline] readFile
+[Pipeline] _OcAction
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS

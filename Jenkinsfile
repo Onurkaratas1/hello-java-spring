@@ -45,7 +45,7 @@ pipeline {
         script {
           openshift.withCluster() {
             openshift.withProject("${env.PROJECT}") {
-              openshift.selector("all", [  'app' : 'springclient' ]).delete()
+              openshift.selector("all", [  'app' : 'springhellotest' ]).delete()
             }
           }
         }

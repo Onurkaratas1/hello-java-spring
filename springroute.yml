@@ -1,0 +1,79 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: spring
+  namespace: onurkaratas-crt-dev
+  uid: b6a8f453-178d-4279-95b4-4fd5cf1d760d
+  resourceVersion: '2060636070'
+  creationTimestamp: '2022-12-25T21:24:34Z'
+  annotations:
+    haproxy.router.openshift.io/timeout: 4m
+    openshift.io/host.generated: 'true'
+    template.openshift.io/expose-uri: 'http://{.spec.host}{.spec.path}'
+  managedFields:
+    - manager: openshift-controller-manager
+      operation: Update
+      apiVersion: route.openshift.io/v1
+      time: '2022-12-22T23:03:32Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:labels':
+            .: {}
+            'f:app': {}
+            'f:template': {}
+            'f:template.openshift.io/template-instance-owner': {}
+    - manager: Mozilla
+      operation: Update
+      apiVersion: route.openshift.io/v1
+      time: '2022-12-25T21:24:34Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:haproxy.router.openshift.io/timeout': {}
+            'f:openshift.io/host.generated': {}
+            'f:template.openshift.io/expose-uri': {}
+        'f:spec':
+          'f:host': {}
+          'f:tls':
+            .: {}
+            'f:insecureEdgeTerminationPolicy': {}
+            'f:termination': {}
+          'f:to':
+            'f:kind': {}
+            'f:name': {}
+            'f:weight': {}
+          'f:wildcardPolicy': {}
+    - manager: openshift-router
+      operation: Update
+      apiVersion: route.openshift.io/v1
+      time: '2022-12-25T21:24:34Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:status':
+          'f:ingress': {}
+      subresource: status
+spec:
+  host: >-
+    vodafoneassestment-onurkaratas-crt-dev.apps.sandbox.x8i5.p1.openshiftapps.com
+  to:
+    kind: Service
+    name: springclient
+    weight: 100
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+status:
+  ingress:
+    - host: >-
+        vodafoneassestment-onurkaratas-crt-dev.apps.sandbox.x8i5.p1.openshiftapps.com
+      routerName: default
+      conditions:
+        - type: Admitted
+          status: 'True'
+          lastTransitionTime: '2022-12-25T21:24:34Z'
+      wildcardPolicy: None
+      routerCanonicalHostname: router-default.apps.sandbox.x8i5.p1.openshiftapps.com
